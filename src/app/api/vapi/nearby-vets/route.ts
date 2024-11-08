@@ -66,14 +66,16 @@ export async function POST(request: NextRequest) {
   try {
     // Parse the request body only once
     const body = await request.json();
+    JSON.parse(body);
+    console.log(body);
     toolCallId = body.message.toolCalls[0].id;
+    console.log(toolCallId);
     let parameters = body.message.toolCalls[0].function.arguments;
-
     // If parameters is a string, parse it as JSON
     if (typeof parameters === 'string') {
       parameters = JSON.parse(parameters);
     }
-
+    console.log(parameters);
     // Validate zipCode in parameters
     if (!parameters || typeof parameters.zipCode !== 'string') {
       return NextResponse.json(
@@ -91,8 +93,9 @@ export async function POST(request: NextRequest) {
         clinics: clinics,
       },
     };
-
+    console.log(response);
     const jsonResponse = NextResponse.json(response, { status: 200 });
+    console.log(jsonResponse);
     jsonResponse.headers.set('Access-Control-Allow-Origin', '*');
     jsonResponse.headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     jsonResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
