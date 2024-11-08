@@ -64,7 +64,8 @@ async function searchOpenClinics({ zipCode }: { zipCode: string | number; }) {
         }));
     
         const clinicsResponse: ClinicsResponse = { clinics: clinicInfo };
-        return clinicsResponse;
+        console.log(clinicsResponse);
+        return NextResponse.json(clinicsResponse);
     
       } catch (error) {
         const errorResponse: ErrorResponse = { error: 'Server error: ' + JSON.stringify(error) };
@@ -74,6 +75,7 @@ async function searchOpenClinics({ zipCode }: { zipCode: string | number; }) {
 
   // Fetch clinics with the default radius
   const clinics = await fetchPetClinics(defaultRadius);
+  console.log(clinics);
   return clinics;
 }
 
