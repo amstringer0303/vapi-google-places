@@ -7,7 +7,7 @@ const apiKey = process.env.GOOGLE_API_KEY;
 async function searchOpenClinics({ zipCode, radius }: { zipCode: string; radius?: number }) {
   const textQuery = `Emergency vet / pet clinic open now ${zipCode}`;
   const defaultRadius = 8046.72; // default to 5 miles in meters if radius not provided
-  const searchRadius = (radius ? radius * 1609.34 : defaultRadius); // convert miles to meters if radius is provided
+  const searchRadius = radius ? radius * 1609.34 : defaultRadius; // convert miles to meters if radius is provided
 
   const response = await axios.post(
     `https://places.googleapis.com/v1/places:searchText?key=${apiKey}`,
@@ -17,8 +17,8 @@ async function searchOpenClinics({ zipCode, radius }: { zipCode: string; radius?
       locationBias: {
         circle: {
           radius: searchRadius,
-        }
-      }
+        },
+      },
     },
     {
       headers: {
@@ -43,7 +43,7 @@ async function searchOpenClinics({ zipCode, radius }: { zipCode: string; radius?
     rating: place.rating || 0,
     userRatingsTotal: place.userRatingCount || 0,
     phoneNumber: place.internationalPhoneNumber || '',
-    location: place.location
+    location: place.location,
   }));
 
   // Sort clinics by rating in descending order and then by proximity (if locations are available)
@@ -61,8 +61,13 @@ async function searchOpenClinics({ zipCode, radius }: { zipCode: string; radius?
 }
 
 export async function POST(request: NextRequest) {
+  let toolCallId;
+
   try {
-    const { toolCallId, parameters } = await request.json();
+    // Parse the request body only once
+    const body = await request.json();
+    toolCallId = body.toolCallId;
+    const { parameters } = body;
 
     const clinics = await searchOpenClinics(parameters);
 
@@ -84,7 +89,7 @@ export async function POST(request: NextRequest) {
 
     const errorResponse = {
       message: 'Server error: ' + JSON.stringify(error),
-      toolCallId: (await request.json()).toolCallId,
+      toolCallId: toolCallId || 'unknown', // Use parsed toolCallId or fallback to 'unknown'
     };
 
     const jsonResponse = NextResponse.json(errorResponse, { status: 500 });
