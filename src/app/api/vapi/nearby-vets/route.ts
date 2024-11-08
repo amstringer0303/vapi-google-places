@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
   try {
     // Parse the request body only once
     const body = await request.json();
-    console.log(body);
+    console.log(JSON.stringify(body, null, 2));
     const toolCallId = body.message.toolCalls[0].id;
     console.log(toolCallId);
     let parameters = body.message.toolCalls[0].function.arguments;
@@ -73,7 +73,6 @@ export async function POST(request: NextRequest) {
     if (typeof parameters === 'string') {
       parameters = JSON.parse(parameters);
     }
-    console.log(parameters);
     // Validate zipCode in parameters
     if (!parameters || typeof parameters.zipCode !== 'string') {
       return NextResponse.json(
@@ -81,9 +80,11 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    const clinics = await searchOpenClinics(parameters);
-
+    // Extract zipCode from parameters passed by Vapi using getPetClinics tool
+    const zipCode = parameters.zipCode;
+    // Call function above to get nearby open clinics
+    const clinics = await searchOpenClinics(zipCode);
+    // Format response to be returned to Vapi (exact format as specified in Vapi Documentation)
     const response = {
       results: [
         {
@@ -94,10 +95,10 @@ export async function POST(request: NextRequest) {
         },
       ],
     };
-
     console.log(response);
+    // Return response to Vapi
     const jsonResponse = NextResponse.json(response, { status: 200 });
-    console.log(jsonResponse);
+    // Allow requests from any origin - Do Not Remove
     jsonResponse.headers.set('Access-Control-Allow-Origin', '*');
     jsonResponse.headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     jsonResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
