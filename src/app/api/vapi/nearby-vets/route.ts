@@ -67,7 +67,12 @@ export async function POST(request: NextRequest) {
     // Parse the request body only once
     const body = await request.json();
     toolCallId = body.message.toolCalls[0].id;
-    const parameters = body.message.toolCalls[0].function.arguments;
+    let parameters = body.message.toolCalls[0].function.arguments;
+
+    // If parameters is a string, parse it as JSON
+    if (typeof parameters === 'string') {
+      parameters = JSON.parse(parameters);
+    }
 
     // Validate zipCode in parameters
     if (!parameters || typeof parameters.zipCode !== 'string') {
@@ -97,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     const errorResponse = {
       message: 'Server error: ' + JSON.stringify(error),
-      toolCallId: toolCallId || 'Most recent tool call',
+      toolCallId: toolCallId || 'unknown',
     };
 
     const jsonResponse = NextResponse.json(errorResponse, { status: 500 });
