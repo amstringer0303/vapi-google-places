@@ -61,14 +61,12 @@ async function searchOpenClinics({ zipCode, radius }: { zipCode: string; radius?
 }
 
 export async function POST(request: NextRequest) {
-  let toolCallId;
 
   try {
     // Parse the request body only once
     const body = await request.json();
-    JSON.parse(body);
     console.log(body);
-    toolCallId = body.message.toolCalls[0].id;
+    const toolCallId = body.message.toolCalls[0].id;
     console.log(toolCallId);
     let parameters = body.message.toolCalls[0].function.arguments;
     // If parameters is a string, parse it as JSON
@@ -79,7 +77,7 @@ export async function POST(request: NextRequest) {
     // Validate zipCode in parameters
     if (!parameters || typeof parameters.zipCode !== 'string') {
       return NextResponse.json(
-        { message: 'Invalid or missing parameters: zipCode is required.', toolCallId },
+        { message: 'Invalid or missing parameters: zipCode is required.'},
         { status: 400 }
       );
     }
@@ -87,12 +85,16 @@ export async function POST(request: NextRequest) {
     const clinics = await searchOpenClinics(parameters);
 
     const response = {
-      toolCallId,
-      result: {
-        message: "Nearby open clinics found successfully.",
-        clinics: clinics,
-      },
+      results: [
+        {
+          toolCallId: toolCallId,
+          result: {
+            message: "Nearby open clinics found successfully. " + JSON.stringify(clinics),
+          },
+        },
+      ],
     };
+
     console.log(response);
     const jsonResponse = NextResponse.json(response, { status: 200 });
     console.log(jsonResponse);
@@ -102,13 +104,7 @@ export async function POST(request: NextRequest) {
     return jsonResponse;
   } catch (error) {
     console.error('Error processing request:', error);
-
-    const errorResponse = {
-      message: 'Server error: ' + JSON.stringify(error),
-      toolCallId: toolCallId || 'unknown',
-    };
-
-    const jsonResponse = NextResponse.json(errorResponse, { status: 500 });
+    const jsonResponse = NextResponse.json({ message: 'Server error: ' + JSON.stringify(error) }, { status: 500 });
     jsonResponse.headers.set('Access-Control-Allow-Origin', '*');
     jsonResponse.headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     jsonResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
