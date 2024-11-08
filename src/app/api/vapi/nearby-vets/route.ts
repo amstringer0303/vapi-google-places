@@ -1,36 +1,43 @@
 // app/api/vapi/nearby-vets/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import axios from 'axios';
 
 const apiKey = process.env.GOOGLE_API_KEY;
 
 // Function to search for nearby open clinics
-async function searchOpenClinics({ zipCode }: { zipCode: string; }) {
+async function searchOpenClinics({ zipCode }: { zipCode: string | number; }) {
   const textQuery = `Emergency vet / pet clinic open now ${zipCode}`;
   const defaultRadius = 8046.72; // default to 5 miles in meters if radius not provided
   const expandedRadius = defaultRadius * 2; // expanded radius to 10 miles
 
   const fetchClinics = async (radius: number) => {
-    const response = await axios.post(
-      `https://places.googleapis.com/v1/places:searchText?key=${apiKey}`,
-      {
-        textQuery,
-        openNow: true,
-        locationBias: {
-          circle: {
-            radius,
-          },
-        },
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.internationalPhoneNumber,places.location',
-        },
+    const endpoint = `https://places.googleapis.com/v1/places:searchText`;
+    const requestBody = {
+      textQuery: textQuery,
+      openNow: true,
+      locationBias: {
+        circle: {
+          radius: radius, // Placeholder: You may want to use location-based search here
+        }
       }
-    );
+    };
 
-    return response.data.places || [];
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+    headers.append('X-Goog-Api-Key', apiKey || '');
+    headers.append('X-Goog-FieldMask', 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.internationalPhoneNumber,places.location');
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch vet clinics');
+    }
+
+    const data = await response.json();
+    return data.places || [];
   };
 
   // Fetch clinics with default radius
