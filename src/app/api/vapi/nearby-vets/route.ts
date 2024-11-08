@@ -4,31 +4,42 @@ import axios from 'axios';
 
 const apiKey = process.env.GOOGLE_API_KEY;
 
-async function searchOpenClinics({ zipCode, radius }: { zipCode: string; radius?: number }) {
+async function searchOpenClinics({ zipCode }: { zipCode: string; }) {
   const textQuery = `Emergency vet / pet clinic open now ${zipCode}`;
   const defaultRadius = 8046.72; // default to 5 miles in meters if radius not provided
-  const searchRadius = radius ? radius * 1609.34 : defaultRadius; // convert miles to meters if radius is provided
+  const expandedRadius = defaultRadius * 2; // expanded radius to 10 miles
 
-  const response = await axios.post(
-    `https://places.googleapis.com/v1/places:searchText?key=${apiKey}`,
-    {
-      textQuery,
-      openNow: true,
-      locationBias: {
-        circle: {
-          radius: searchRadius,
+  const fetchClinics = async (radius: number) => {
+    const response = await axios.post(
+      `https://places.googleapis.com/v1/places:searchText?key=${apiKey}`,
+      {
+        textQuery,
+        openNow: true,
+        locationBias: {
+          circle: {
+            radius,
+          },
         },
       },
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.internationalPhoneNumber,places.location',
-      },
-    }
-  );
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.internationalPhoneNumber,places.location',
+        },
+      }
+    );
 
-  const places = response.data.places || [];
+    return response.data.places || [];
+  };
+
+  // Fetch clinics with default radius
+  let places = await fetchClinics(defaultRadius);
+
+  // If less than 2 results, fetch again with expanded radius and append
+  if (places.length < 2) {
+    const additionalPlaces = await fetchClinics(expandedRadius);
+    places = places.concat(additionalPlaces);
+  }
 
   const clinicInfo = places.map((place: { 
     displayName: { text: string },
@@ -82,8 +93,10 @@ export async function POST(request: NextRequest) {
     }
     // Extract zipCode from parameters passed by Vapi using getPetClinics tool
     const zipCode = parameters.zipCode;
+    console.log(zipCode);
     // Call function above to get nearby open clinics
     const clinics = await searchOpenClinics(zipCode);
+    console.log(clinics);
     // Format response to be returned to Vapi (exact format as specified in Vapi Documentation)
     const response = {
       results: [
@@ -95,7 +108,6 @@ export async function POST(request: NextRequest) {
         },
       ],
     };
-    console.log(response);
     // Return response to Vapi
     const jsonResponse = NextResponse.json(response, { status: 200 });
     // Allow requests from any origin - Do Not Remove
