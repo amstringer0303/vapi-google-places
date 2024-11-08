@@ -66,12 +66,10 @@ export async function POST(request: NextRequest) {
   try {
     // Parse the request body only once
     const body = await request.json();
-    console.log(JSON.stringify(body, null, 2));
-    toolCallId = body.toolCallId;
-    const { parameters } = body;
-    console.log(JSON.stringify(parameters, null, 2));
+    toolCallId = body.message.toolCalls[0].id;
+    const parameters = body.message.toolCalls[0].function.arguments;
 
-    // Check if parameters are defined and contain zipCode
+    // Validate zipCode in parameters
     if (!parameters || typeof parameters.zipCode !== 'string') {
       return NextResponse.json(
         { message: 'Invalid or missing parameters: zipCode is required.', toolCallId },
@@ -99,7 +97,7 @@ export async function POST(request: NextRequest) {
 
     const errorResponse = {
       message: 'Server error: ' + JSON.stringify(error),
-      toolCallId: toolCallId || 'unknown',
+      toolCallId: toolCallId || 'Most recent tool call',
     };
 
     const jsonResponse = NextResponse.json(errorResponse, { status: 500 });
