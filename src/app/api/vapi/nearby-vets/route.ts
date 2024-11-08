@@ -1,9 +1,10 @@
-// app/api/nearby-clinics/route.ts
+// app/api/vapi/nearby-vets/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
 const apiKey = process.env.GOOGLE_API_KEY;
 
+// Function to search for nearby open clinics
 async function searchOpenClinics({ zipCode }: { zipCode: string; }) {
   const textQuery = `Emergency vet / pet clinic open now ${zipCode}`;
   const defaultRadius = 8046.72; // default to 5 miles in meters if radius not provided
@@ -71,6 +72,8 @@ async function searchOpenClinics({ zipCode }: { zipCode: string; }) {
   return clinicInfo;
 }
 
+
+// API endpoint for Vapi to get nearby open clinics
 export async function POST(request: NextRequest) {
 
   try {
