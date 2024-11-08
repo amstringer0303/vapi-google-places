@@ -66,8 +66,10 @@ export async function POST(request: NextRequest) {
   try {
     // Parse the request body only once
     const body = await request.json();
+    console.log(body);
     toolCallId = body.toolCallId;
     const { parameters } = body;
+    console.log(parameters);
 
     // Check if parameters are defined and contain zipCode
     if (!parameters || typeof parameters.zipCode !== 'string') {
