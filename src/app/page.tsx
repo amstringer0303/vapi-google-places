@@ -4,9 +4,9 @@ export default function Home() {
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="text-5xl flex flex-col gap-8 row-start-2 items-center">
-        <h1 className="text-7xl font-bold text-center">PawTox</h1>
-        <h2>Call: +1 (888) 884 2201</h2>
+        <h1 className="text-7xl font-bold text-center shadow-lg">PawTox</h1>
         <h2 className="text-muted-foreground">Pet Poison Control Call Center</h2>
+        <h2 className="bg-white rounded-lg p-2 shadow-lg text-black">+1 (888) 884 2201</h2>
         {/* <div className="flex gap-4 items-center flex-col sm:flex-row">
           <a
             className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
