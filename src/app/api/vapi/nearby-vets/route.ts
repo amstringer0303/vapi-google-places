@@ -28,7 +28,7 @@ const endpoint = `https://places.googleapis.com/v1/places:searchText`;
 
 // Core Function: Fetch Vets using Google Places Text Search API
 const fetchPetClinics = async (zipCode: string) => {
-    const textQuery = `Emergency poison vet / pet clinic near ${zipCode}`;
+    const textQuery = `Emergency poison vet / pet clinic within 5 miles of ${zipCode}`;
     if (!apiKey) {
         const errorResponse: ErrorResponse = { error: 'Google API key is required. Please specify apiKey parameter.' };
         return NextResponse.json(errorResponse, { status: 400 });
@@ -36,7 +36,8 @@ const fetchPetClinics = async (zipCode: string) => {
     try {
         const requestBody = {
             textQuery: textQuery,
-            openNow: true
+            openNow: true,
+            rankPreference: 'DISTANCE'
         };
         const response = await fetch(endpoint, {
             method: 'POST',
