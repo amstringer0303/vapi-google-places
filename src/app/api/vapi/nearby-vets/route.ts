@@ -1,28 +1,29 @@
 // app/api/vapi/nearby-vets/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
+// Types 
 interface ClinicInfo {
     name: string;
     address: string;
     rating?: number;
     userRatingsTotal?: number;
     phoneNumber?: string;
-  }
+}
   
-  interface ClinicsResponse {
+interface ClinicsResponse {
     clinics: ClinicInfo[];
-  }
-  
-  interface ErrorResponse {
+}
+
+interface ErrorResponse {
     error: string;
-  }
+}
 
+// Constants 
 const apiKey = process.env.GOOGLE_API_KEY;
-
 const endpoint = `https://places.googleapis.com/v1/places:searchText`;
 const defaultRadius = 8046.72; // default to 5 miles in meters
 
-// Google Places Text Search API function to fetch pet clinics
+// Core Function: Fetch Vets using Google Places Text Search API
 const fetchPetClinics = async (zipCode: string) => {
     const textQuery = `Emergency vet / pet clinic open now ${zipCode}`;
     if (!apiKey) {
@@ -70,27 +71,26 @@ const fetchPetClinics = async (zipCode: string) => {
      }    
 };
 
-// Parent function to search for nearby open clinics
+// Parent function for Vapi
 async function searchOpenClinics({ zipCode }: { zipCode: string; }) {
   const clinics = await fetchPetClinics(zipCode);
   console.log(clinics);
   return clinics;
 }
 
-// API endpoint for Vapi to get nearby open clinics
+// API endpoint for Vapi
 export async function POST(request: NextRequest) {
-
   try {
-    // Parse the request body only once
     const body = await request.json();
-    console.log(JSON.stringify(body, null, 2));
     const toolCallId = body.message.toolCalls[0].id;
     console.log(toolCallId);
     let parameters = body.message.toolCalls[0].function.arguments;
+    
     // If parameters is a string, parse it as JSON
     if (typeof parameters === 'string') {
       parameters = JSON.parse(parameters);
     }
+
     // Validate zipCode in parameters
     if (!parameters || typeof parameters.zipCode !== 'string') {
       return NextResponse.json(
@@ -98,13 +98,13 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    // Extract zipCode from parameters passed by Vapi using getPetClinics tool
     const zipCode = parameters.zipCode;
-    console.log(zipCode);
-    // Call function above to get nearby open clinics
+    
+    // Fetch Vets
     const clinics = await searchOpenClinics(zipCode);
-    console.log(clinics);
-    // Format response to be returned to Vapi (exact format as specified in Vapi Documentation)
+    console.log("Tool Called: ", JSON.stringify({toolCallId, zipCode, clinics}));
+    
+    // Format response for Vapi (as specified in Vapi Documentation)
     const response = {
       results: [
         {
@@ -115,13 +115,13 @@ export async function POST(request: NextRequest) {
         },
       ],
     };
-    // Return response to Vapi
+    
     const jsonResponse = NextResponse.json(response, { status: 200 });
+    
     // Allow requests from any origin - Do Not Remove
     jsonResponse.headers.set('Access-Control-Allow-Origin', '*');
     jsonResponse.headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     jsonResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    console.log(jsonResponse);
     return jsonResponse;
   } catch (error) {
     console.error('Error processing request:', error);
