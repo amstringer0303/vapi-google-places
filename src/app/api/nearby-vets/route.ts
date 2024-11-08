@@ -38,7 +38,6 @@ export async function GET(request: Request) {
     locationBias: {
       circle: {
         radius: radius,
-        center: { latitude: 0, longitude: 0 }  // Placeholder: You may want to use location-based search here
       }
     }
   };

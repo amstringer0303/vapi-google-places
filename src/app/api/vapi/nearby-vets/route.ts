@@ -6,8 +6,7 @@ const apiKey = process.env.GOOGLE_API_KEY;
 // Function to search for nearby open clinics
 async function searchOpenClinics({ zipCode }: { zipCode: string | number; }) {
   const textQuery = `Emergency vet / pet clinic open now ${zipCode}`;
-  const defaultRadius = 8046.72; // default to 5 miles in meters if radius not provided
-  const expandedRadius = defaultRadius * 2; // expanded radius to 10 miles
+  const defaultRadius = 8046.72; // default to 5 miles in meters
 
   const fetchClinics = async (radius: number) => {
     const endpoint = `https://places.googleapis.com/v1/places:searchText`;
@@ -16,15 +15,16 @@ async function searchOpenClinics({ zipCode }: { zipCode: string | number; }) {
       openNow: true,
       locationBias: {
         circle: {
-          radius: radius, // Placeholder: You may want to use location-based search here
+          radius: radius,
         }
       }
     };
 
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/json');
-    headers.append('X-Goog-Api-Key', apiKey || '');
-    headers.append('X-Goog-FieldMask', 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.internationalPhoneNumber,places.location');
+    const headers = new Headers({
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': apiKey || '',
+      'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.internationalPhoneNumber',
+    });
 
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -40,41 +40,22 @@ async function searchOpenClinics({ zipCode }: { zipCode: string | number; }) {
     return data.places || [];
   };
 
-  // Fetch clinics with default radius
-  let places = await fetchClinics(defaultRadius);
-
-  // If less than 2 results, fetch again with expanded radius and append
-  if (places.length < 2) {
-    const additionalPlaces = await fetchClinics(expandedRadius);
-    places = places.concat(additionalPlaces);
-  }
+  // Fetch clinics with the default radius
+  const places = await fetchClinics(defaultRadius);
 
   const clinicInfo = places.map((place: { 
     displayName: { text: string },
     formattedAddress: string,
     rating?: number,
     userRatingCount?: number,
-    internationalPhoneNumber?: string,
-    location?: { lat: number, lng: number }
+    internationalPhoneNumber?: string
   }) => ({
     name: place.displayName.text,
     address: place.formattedAddress,
     rating: place.rating || 0,
     userRatingsTotal: place.userRatingCount || 0,
     phoneNumber: place.internationalPhoneNumber || '',
-    location: place.location,
   }));
-
-  // Sort clinics by rating in descending order and then by proximity (if locations are available)
-  clinicInfo.sort((a: { rating: number; location: { lat: number; lng: number; }; }, b: { rating: number; location: { lat: number; lng: number; }; }) => {
-    if (b.rating !== a.rating) return b.rating - a.rating;
-    if (a.location && b.location) {
-      const distanceA = a.location.lat ** 2 + a.location.lng ** 2;
-      const distanceB = b.location.lat ** 2 + b.location.lng ** 2;
-      return distanceA - distanceB;
-    }
-    return 0;
-  });
 
   return clinicInfo;
 }
