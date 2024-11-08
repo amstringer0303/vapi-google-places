@@ -8,6 +8,9 @@ interface ClinicInfo {
     rating?: number;
     userRatingsTotal?: number;
     phoneNumber?: string;
+    website?: string;
+    reviews?: string;
+    businessHours?: string;
 }
   
 interface ClinicsResponse {
@@ -55,12 +58,15 @@ const fetchPetClinics = async (zipCode: string) => {
         }
         const data = await response.json();
         const places = data.places || [];
-        const clinicInfo: ClinicInfo[] = places.map((place: { displayName: { text: string }, formattedAddress: string, rating?: number, userRatingCount?: number, internationalPhoneNumber?: string }) => ({
+        const clinicInfo: ClinicInfo[] = places.map((place: { displayName: { text: string }, formattedAddress: string, rating?: number, userRatingCount?: number, internationalPhoneNumber?: string, websiteUri?: string, reviews?: string, regularOpeningHours?: string }) => ({
             name: place.displayName.text,
             address: place.formattedAddress,
             rating: place.rating,
             userRatingsTotal: place.userRatingCount,
             phoneNumber: place.internationalPhoneNumber,
+            website: place.websiteUri,
+            reviews: place.reviews,
+            businessHours: place.regularOpeningHours,
         }));
         const clinicsResponse: ClinicsResponse = { clinics: clinicInfo };
         console.log(clinicsResponse);
@@ -98,7 +104,7 @@ export async function POST(request: NextRequest) {
       parameters = JSON.parse(parameters);
     }
 
-    // Validate zipCode in parameters
+    // Validate zipCode parameter from Vapi
     if (!parameters || typeof parameters.zipCode !== 'string') {
       return NextResponse.json(
         { message: 'Invalid or missing parameters: zipCode is required.'},
@@ -107,9 +113,9 @@ export async function POST(request: NextRequest) {
     }
     const zipCode = parameters.zipCode;
     
-    // Fetch Vets
+    // Fetch vets using above function
     const clinics = await searchOpenClinics(zipCode);
-    console.log("Tool Called: ", JSON.stringify({toolCallId, zipCode, clinics}));
+    console.log("Tool Called: ", JSON.stringify({toolCallId, zipCode, clinics}, null, 2));
     
     // Format response for Vapi (as specified in Vapi Documentation)
     const response = {
@@ -117,7 +123,7 @@ export async function POST(request: NextRequest) {
         {
           toolCallId: toolCallId,
           result: {
-            message: "Nearby open clinics found successfully. " + JSON.stringify(clinics),
+            message: "Nearby open vetclinics found successfully: " + JSON.stringify(clinics),
           },
         },
       ],
