@@ -72,14 +72,24 @@ const fetchPetClinics = async (zipCode: string) => {
      }    
 };
 
-// Parent function for Vapi
+// Recommendation function for Vapi
 async function searchOpenClinics({ zipCode }: { zipCode: string; }) {
   const clinicsResponse = await fetchPetClinics(zipCode);
   const clinics = await clinicsResponse.json();
   console.log(clinics);
   if (clinics && clinics.clinics.length > 0) {
     const recommendedClinic = clinics.clinics.reduce((prev: ClinicInfo, current: ClinicInfo) => {
-      return (prev.rating || 0) > (current.rating || 0) ? prev : current;
+      const prevWeightedRating = (prev.rating || 0) * (prev.userRatingsTotal || 0);
+      const currentWeightedRating = (current.rating || 0) * (current.userRatingsTotal || 0);
+      
+      // Factor in distance, ideally in same or close zip code
+      const prevDistance = Math.abs(parseInt(prev.address.split(' ')[prev.address.split(' ').length - 1]) - parseInt(zipCode));
+      const currentDistance = Math.abs(parseInt(current.address.split(' ')[current.address.split(' ').length - 1]) - parseInt(zipCode));
+      
+      if (prevDistance === currentDistance) {
+        return prevWeightedRating > currentWeightedRating ? prev : current;
+      }
+      return prevDistance < currentDistance ? prev : current;
     });
     clinics.recommendedVet = recommendedClinic;
   }
