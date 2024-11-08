@@ -24,11 +24,11 @@ interface ErrorResponse {
 // Constants 
 const apiKey = process.env.GOOGLE_API_KEY;
 const endpoint = `https://places.googleapis.com/v1/places:searchText`;
-const defaultRadius = 500; // default to 5 miles in meters
+// const defaultRadius = 500; // default to 5 miles in meters
 
 // Core Function: Fetch Vets using Google Places Text Search API
 const fetchPetClinics = async (zipCode: string) => {
-    const textQuery = `Emergency vet / pet clinic open now near ${zipCode}`;
+    const textQuery = `Emergency poison vet / pet clinic near ${zipCode}`;
     if (!apiKey) {
         const errorResponse: ErrorResponse = { error: 'Google API key is required. Please specify apiKey parameter.' };
         return NextResponse.json(errorResponse, { status: 400 });
@@ -36,12 +36,7 @@ const fetchPetClinics = async (zipCode: string) => {
     try {
         const requestBody = {
             textQuery: textQuery,
-            openNow: true,
-            locationRestriction: {
-                circle: {
-                    radius: defaultRadius,
-                }
-            }
+            openNow: true
         };
         const response = await fetch(endpoint, {
             method: 'POST',
