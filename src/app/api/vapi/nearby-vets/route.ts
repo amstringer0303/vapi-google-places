@@ -9,7 +9,7 @@ interface ClinicInfo {
     userRatingsTotal?: number;
     phoneNumber?: string;
     website?: string;
-    reviews?: string;
+    reviews?: { rating: number, text: string }[];
     businessHours?: string;
 }
   
@@ -60,7 +60,10 @@ const fetchPetClinics = async (zipCode: string) => {
             userRatingsTotal: place.userRatingCount,
             phoneNumber: place.internationalPhoneNumber,
             website: place.websiteUri,
-            reviews: place.reviews,
+            reviews: place.reviews ? JSON.parse(place.reviews).map((review: { rating: number, text: string }) => ({
+                rating: review.rating,
+                text: review.text,
+            })) : [],
             businessHours: place.regularOpeningHours,
         }));
         const clinicsResponse: ClinicsResponse = { clinics: clinicInfo };
