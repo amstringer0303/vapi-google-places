@@ -69,6 +69,14 @@ export async function POST(request: NextRequest) {
     toolCallId = body.toolCallId;
     const { parameters } = body;
 
+    // Check if parameters are defined and contain zipCode
+    if (!parameters || typeof parameters.zipCode !== 'string') {
+      return NextResponse.json(
+        { message: 'Invalid or missing parameters: zipCode is required.', toolCallId },
+        { status: 400 }
+      );
+    }
+
     const clinics = await searchOpenClinics(parameters);
 
     const response = {
@@ -89,7 +97,7 @@ export async function POST(request: NextRequest) {
 
     const errorResponse = {
       message: 'Server error: ' + JSON.stringify(error),
-      toolCallId: toolCallId || 'unknown', // Use parsed toolCallId or fallback to 'unknown'
+      toolCallId: toolCallId || 'unknown',
     };
 
     const jsonResponse = NextResponse.json(errorResponse, { status: 500 });
