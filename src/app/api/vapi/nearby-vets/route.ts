@@ -19,115 +19,63 @@ interface ClinicInfo {
 
 const apiKey = process.env.GOOGLE_API_KEY;
 
-// Function to search for nearby open clinics
-async function searchOpenClinics({ zipCode }: { zipCode: string | number; }) {
-  const endpoint = `https://places.googleapis.com/v1/places:searchText`;
-  const textQuery = `Emergency vet / pet clinic open now ${zipCode}`;
-  const defaultRadius = 8046.72; // default to 5 miles in meters
+const endpoint = `https://places.googleapis.com/v1/places:searchText`;
+const defaultRadius = 8046.72; // default to 5 miles in meters
 
-  const fetchPetClinics = async (radius: number) => {
+// Google Places Text Search API function to fetch pet clinics
+const fetchPetClinics = async (zipCode: string) => {
+    const textQuery = `Emergency vet / pet clinic open now ${zipCode}`;
+    if (!apiKey) {
+        const errorResponse: ErrorResponse = { error: 'Google API key is required. Please specify apiKey parameter.' };
+        return NextResponse.json(errorResponse, { status: 400 });
+    }
     try {
         const requestBody = {
-          textQuery: textQuery,
-          openNow: true,
-          locationBias: {
-            circle: {
-              radius: radius,
+            textQuery: textQuery,
+            openNow: true,
+            locationBias: {
+                circle: {
+                    radius: defaultRadius,
+                }
             }
-          }
         };
-
         const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Goog-Api-Key': apiKey || '',
-            'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.internationalPhoneNumber',
-          },
-          body: JSON.stringify(requestBody),
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Goog-Api-Key': apiKey,
+                'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.internationalPhoneNumber',
+            },
+            body: JSON.stringify(requestBody),
         });
-    
         if (!response.ok) {
-          const errorResponse: ErrorResponse = { error: 'Failed to fetch vet clinics' };
-          return NextResponse.json(errorResponse, { status: response.status });
+            const errorResponse: ErrorResponse = { error: 'Failed to fetch vet clinics' };
+            return NextResponse.json(errorResponse, { status: response.status });
         }
-    
         const data = await response.json();
         const places = data.places || [];
-    
         const clinicInfo: ClinicInfo[] = places.map((place: { displayName: { text: string }, formattedAddress: string, rating?: number, userRatingCount?: number, internationalPhoneNumber?: string }) => ({
-          name: place.displayName.text,
-          address: place.formattedAddress,
-          rating: place.rating,
-          userRatingsTotal: place.userRatingCount,
-          phoneNumber: place.internationalPhoneNumber,
+            name: place.displayName.text,
+            address: place.formattedAddress,
+            rating: place.rating,
+            userRatingsTotal: place.userRatingCount,
+            phoneNumber: place.internationalPhoneNumber,
         }));
-    
         const clinicsResponse: ClinicsResponse = { clinics: clinicInfo };
         console.log(clinicsResponse);
         return NextResponse.json(clinicsResponse);
-    
-      } catch (error) {
+    } catch (error) {
         const errorResponse: ErrorResponse = { error: 'Server error: ' + JSON.stringify(error) };
-        return errorResponse;
-      }    
-  };
+        return NextResponse.json(errorResponse, { status: 500 });
+     }    
+};
 
-  // Fetch clinics with the default radius
-  const clinics = await fetchPetClinics(defaultRadius);
+// Parent function to search for nearby open clinics
+async function searchOpenClinics({ zipCode }: { zipCode: string; }) {
+  const clinics = await fetchPetClinics(zipCode);
   console.log(clinics);
   return clinics;
 }
-
-//   const fetchClinics = async (radius: number) => {
-//     const endpoint = `https://places.googleapis.com/v1/places:searchText`;
-//     const requestBody = {
-//       textQuery: textQuery,
-//       openNow: true,
-//       locationBias: {
-//         circle: {
-//           radius: radius,
-//         }
-//       }
-//     };
-
-//     const headers = new Headers({
-//       'Content-Type': 'application/json',
-//       'X-Goog-Api-Key': apiKey || '',
-//       'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.internationalPhoneNumber',
-//     });
-
-//     const response = await fetch(endpoint, {
-//       method: 'POST',
-//       headers: headers,
-//       body: JSON.stringify(requestBody),
-//     });
-
-
-//     const data = await response.json();
-//     return data.places || [];
-//   };
-
-//   // Fetch clinics with the default radius
-//   const places = await fetchClinics(defaultRadius);
-
-//   const clinicInfo = places.map((place: { 
-//     displayName: { text: string },
-//     formattedAddress: string,
-//     rating?: number,
-//     userRatingCount?: number,
-//     internationalPhoneNumber?: string
-//   }) => ({
-//     name: place.displayName.text,
-//     address: place.formattedAddress,
-//     rating: place.rating || 0,
-//     userRatingsTotal: place.userRatingCount || 0,
-//     phoneNumber: place.internationalPhoneNumber || '',
-//   }));
-
-//   return clinicInfo;
-// }
-
 
 // API endpoint for Vapi to get nearby open clinics
 export async function POST(request: NextRequest) {
@@ -173,6 +121,7 @@ export async function POST(request: NextRequest) {
     jsonResponse.headers.set('Access-Control-Allow-Origin', '*');
     jsonResponse.headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     jsonResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    console.log(jsonResponse);
     return jsonResponse;
   } catch (error) {
     console.error('Error processing request:', error);
