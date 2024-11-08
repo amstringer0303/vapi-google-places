@@ -45,7 +45,7 @@ const fetchPetClinics = async (zipCode: string) => {
             headers: {
                 'Content-Type': 'application/json',
                 'X-Goog-Api-Key': apiKey,
-                'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.internationalPhoneNumber',
+                'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.internationalPhoneNumber,places.regularOpeningHours,places.websiteUri,places.reviews',
             },
             body: JSON.stringify(requestBody),
         });
@@ -73,8 +73,15 @@ const fetchPetClinics = async (zipCode: string) => {
 
 // Parent function for Vapi
 async function searchOpenClinics({ zipCode }: { zipCode: string; }) {
-  const clinics = await fetchPetClinics(zipCode);
+  const clinicsResponse = await fetchPetClinics(zipCode);
+  const clinics = await clinicsResponse.json();
   console.log(clinics);
+  if (clinics && clinics.clinics.length > 0) {
+    const recommendedClinic = clinics.clinics.reduce((prev: ClinicInfo, current: ClinicInfo) => {
+      return (prev.rating || 0) > (current.rating || 0) ? prev : current;
+    });
+    clinics.recommendedVet = recommendedClinic;
+  }
   return clinics;
 }
 
