@@ -69,6 +69,8 @@ export async function GET(request: Request) {
       phoneNumber: place.internationalPhoneNumber,
     }));
 
+    console.log("Results: ", JSON.stringify({ zipCode, clinics: clinicInfo}));
+
     const clinicsResponse: ClinicsResponse = { clinics: clinicInfo };
     return NextResponse.json(clinicsResponse);
 
