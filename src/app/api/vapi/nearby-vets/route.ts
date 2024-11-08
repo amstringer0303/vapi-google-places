@@ -1,64 +1,130 @@
 // app/api/vapi/nearby-vets/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
+interface ClinicInfo {
+    name: string;
+    address: string;
+    rating?: number;
+    userRatingsTotal?: number;
+    phoneNumber?: string;
+  }
+  
+  interface ClinicsResponse {
+    clinics: ClinicInfo[];
+  }
+  
+  interface ErrorResponse {
+    error: string;
+  }
+
 const apiKey = process.env.GOOGLE_API_KEY;
 
 // Function to search for nearby open clinics
 async function searchOpenClinics({ zipCode }: { zipCode: string | number; }) {
+  const endpoint = `https://places.googleapis.com/v1/places:searchText`;
   const textQuery = `Emergency vet / pet clinic open now ${zipCode}`;
   const defaultRadius = 8046.72; // default to 5 miles in meters
 
-  const fetchClinics = async (radius: number) => {
-    const endpoint = `https://places.googleapis.com/v1/places:searchText`;
-    const requestBody = {
-      textQuery: textQuery,
-      openNow: true,
-      locationBias: {
-        circle: {
-          radius: radius,
+  const fetchPetClinics = async (radius: number) => {
+    try {
+        const requestBody = {
+          textQuery: textQuery,
+          openNow: true,
+          locationBias: {
+            circle: {
+              radius: radius,
+            }
+          }
+        };
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': apiKey || '',
+            'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.internationalPhoneNumber',
+          },
+          body: JSON.stringify(requestBody),
+        });
+    
+        if (!response.ok) {
+          const errorResponse: ErrorResponse = { error: 'Failed to fetch vet clinics' };
+          return NextResponse.json(errorResponse, { status: response.status });
         }
-      }
-    };
-
-    const headers = new Headers({
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': apiKey || '',
-      'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.internationalPhoneNumber',
-    });
-
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch vet clinics');
-    }
-
-    const data = await response.json();
-    return data.places || [];
+    
+        const data = await response.json();
+        const places = data.places || [];
+    
+        const clinicInfo: ClinicInfo[] = places.map((place: { displayName: { text: string }, formattedAddress: string, rating?: number, userRatingCount?: number, internationalPhoneNumber?: string }) => ({
+          name: place.displayName.text,
+          address: place.formattedAddress,
+          rating: place.rating,
+          userRatingsTotal: place.userRatingCount,
+          phoneNumber: place.internationalPhoneNumber,
+        }));
+    
+        const clinicsResponse: ClinicsResponse = { clinics: clinicInfo };
+        return clinicsResponse;
+    
+      } catch (error) {
+        const errorResponse: ErrorResponse = { error: 'Server error: ' + JSON.stringify(error) };
+        return errorResponse;
+      }    
   };
 
   // Fetch clinics with the default radius
-  const places = await fetchClinics(defaultRadius);
-
-  const clinicInfo = places.map((place: { 
-    displayName: { text: string },
-    formattedAddress: string,
-    rating?: number,
-    userRatingCount?: number,
-    internationalPhoneNumber?: string
-  }) => ({
-    name: place.displayName.text,
-    address: place.formattedAddress,
-    rating: place.rating || 0,
-    userRatingsTotal: place.userRatingCount || 0,
-    phoneNumber: place.internationalPhoneNumber || '',
-  }));
-
-  return clinicInfo;
+  const clinics = await fetchPetClinics(defaultRadius);
+  return clinics;
 }
+
+//   const fetchClinics = async (radius: number) => {
+//     const endpoint = `https://places.googleapis.com/v1/places:searchText`;
+//     const requestBody = {
+//       textQuery: textQuery,
+//       openNow: true,
+//       locationBias: {
+//         circle: {
+//           radius: radius,
+//         }
+//       }
+//     };
+
+//     const headers = new Headers({
+//       'Content-Type': 'application/json',
+//       'X-Goog-Api-Key': apiKey || '',
+//       'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.internationalPhoneNumber',
+//     });
+
+//     const response = await fetch(endpoint, {
+//       method: 'POST',
+//       headers: headers,
+//       body: JSON.stringify(requestBody),
+//     });
+
+
+//     const data = await response.json();
+//     return data.places || [];
+//   };
+
+//   // Fetch clinics with the default radius
+//   const places = await fetchClinics(defaultRadius);
+
+//   const clinicInfo = places.map((place: { 
+//     displayName: { text: string },
+//     formattedAddress: string,
+//     rating?: number,
+//     userRatingCount?: number,
+//     internationalPhoneNumber?: string
+//   }) => ({
+//     name: place.displayName.text,
+//     address: place.formattedAddress,
+//     rating: place.rating || 0,
+//     userRatingsTotal: place.userRatingCount || 0,
+//     phoneNumber: place.internationalPhoneNumber || '',
+//   }));
+
+//   return clinicInfo;
+// }
 
 
 // API endpoint for Vapi to get nearby open clinics
