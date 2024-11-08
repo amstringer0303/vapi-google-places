@@ -30,7 +30,6 @@ async function searchOpenClinics({ zipCode, radius }: { zipCode: string; radius?
 
   const places = response.data.places || [];
 
-  // Map results and include location data for sorting
   const clinicInfo = places.map((place: { 
     displayName: { text: string },
     formattedAddress: string,
@@ -51,7 +50,6 @@ async function searchOpenClinics({ zipCode, radius }: { zipCode: string; radius?
   clinicInfo.sort((a: { rating: number; location: { lat: number; lng: number; }; }, b: { rating: number; location: { lat: number; lng: number; }; }) => {
     if (b.rating !== a.rating) return b.rating - a.rating;
     if (a.location && b.location) {
-      // Calculate distance approximation (placeholder example based on lat/long, not accurate distance calc)
       const distanceA = a.location.lat ** 2 + a.location.lng ** 2;
       const distanceB = b.location.lat ** 2 + b.location.lng ** 2;
       return distanceA - distanceB;
@@ -64,28 +62,32 @@ async function searchOpenClinics({ zipCode, radius }: { zipCode: string; radius?
 
 export async function POST(request: NextRequest) {
   try {
-    const { message } = await request.json();
-    console.log(message);
+    const { toolCallId, parameters } = await request.json();
 
-    if (message.type === 'function-call' && message.functionCall) {
-      const { parameters } = message.functionCall;
-      
-      const clinics = await searchOpenClinics(parameters);
-      const jsonResponse = NextResponse.json({ result: "Nearby open clinics found successfully.", clinics: clinics }, { status: 200 });
-      jsonResponse.headers.set('Access-Control-Allow-Origin', '*');
-      jsonResponse.headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-      jsonResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-      return jsonResponse;
-    } else {
-      const jsonResponse = NextResponse.json({ message: `Unhandled message type: ${message.type}` }, { status: 400 });
-      jsonResponse.headers.set('Access-Control-Allow-Origin', '*');
-      jsonResponse.headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-      jsonResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-      return jsonResponse;
-    }
+    const clinics = await searchOpenClinics(parameters);
+
+    const response = {
+      toolCallId,
+      result: {
+        message: "Nearby open clinics found successfully.",
+        clinics: clinics,
+      },
+    };
+
+    const jsonResponse = NextResponse.json(response, { status: 200 });
+    jsonResponse.headers.set('Access-Control-Allow-Origin', '*');
+    jsonResponse.headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+    jsonResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    return jsonResponse;
   } catch (error) {
     console.error('Error processing request:', error);
-    const jsonResponse = NextResponse.json({ message: 'Server error: ' + JSON.stringify(error) }, { status: 500 });
+
+    const errorResponse = {
+      message: 'Server error: ' + JSON.stringify(error),
+      toolCallId: (await request.json()).toolCallId,
+    };
+
+    const jsonResponse = NextResponse.json(errorResponse, { status: 500 });
     jsonResponse.headers.set('Access-Control-Allow-Origin', '*');
     jsonResponse.headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     jsonResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
