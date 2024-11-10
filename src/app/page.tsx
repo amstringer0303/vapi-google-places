@@ -7,7 +7,7 @@ export default function Home() {
         <h1 className="text-7xl font-bold text-center shadow-lg">PawTox</h1>
         <h2 className="text-muted-foreground">Pet Poison Control Call Center</h2>
         <h2 className="bg-white rounded-lg p-2 shadow-lg text-black">+1 (888) 884 2201</h2>
-        <p className="mt-8 text-muted-foreground text-sm text-center">Over the phone, help you determine if your pet has been poisoned and needs emergency care.<br/>Optionally, you can verbally consent to toll-free SMS messages with instructions for at-home care and nearby 24/7 emergency vets.</p>
+        <p className="mt-8 text-muted-foreground text-sm text-center">Over the phone, we will help you determine if your pet has been poisoned and needs emergency care.<br/>Optionally, you can verbally consent to toll-free SMS messages with instructions for at-home care and nearby 24/7 emergency vets.</p>
       </main>
       <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
         <a
