@@ -80,7 +80,7 @@ const chatBubbleMessageVariants = cva("p-4", {
       sent: "bg-primary text-primary-foreground rounded-l-lg rounded-tr-lg",
     },
     layout: {
-      default: "",
+      default: "w-full",
       ai: "border-t w-full rounded-none bg-transparent",
     },
   },

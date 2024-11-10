@@ -3,6 +3,7 @@
 
 import {
   ChatBubble,
+  ChatBubbleAction,
   ChatBubbleAvatar,
   ChatBubbleMessage,
 } from "@/components/ui/chat/chat-bubble";
@@ -15,7 +16,7 @@ import {
 } from "@/components/ui/chat/expandable-chat";
 import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
 import { Button } from "@/components/ui/button";
-import { Send } from "lucide-react";
+import { Copy, Send } from "lucide-react";
 import { useChat } from "ai/react";
 import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
@@ -68,6 +69,11 @@ export default function ChatSupport() {
     }
   };
 
+  const actionIcons = [
+    { icon: Copy, type: 'Copy' },
+    // { icon: RefreshCcw, type: 'Regenerate' },
+  ];
+
   return (
     <ExpandableChat size="md" position="bottom-right">
       <ExpandableChatHeader className="bg-muted/60 flex-col text-center justify-center">
@@ -84,7 +90,7 @@ export default function ChatSupport() {
         <ChatMessageList className="bg-muted/25" ref={messagesRef}>
           {/* Initial message */}
           <ChatBubble variant="received">
-            <ChatBubbleAvatar src="" fallback="🤖" />
+            <ChatBubbleAvatar src="" fallback="👨🏽‍⚕️" />
             <ChatBubbleMessage>
               Hello! I&apos;m an AI emergency vet. Could you please share with me the name, age, breed and symptoms of your pet?
             </ChatBubbleMessage>
@@ -99,7 +105,7 @@ export default function ChatSupport() {
               >
                 <ChatBubbleAvatar
                   src=""
-                  fallback={message.role == "user" ? "👨🏽" : "👨🏽‍⚕️"}
+                  fallback={message.role == "user" ? "🐶" : "👨🏽‍⚕️"}
                 />
                 <ChatBubbleMessage
                   variant={message.role == "user" ? "sent" : "received"}
@@ -121,6 +127,20 @@ export default function ChatSupport() {
                         );
                       }
                     })}
+                    {message.role == "assistant" && actionIcons.map(({ icon: Icon, type }) => (
+                      <ChatBubbleAction
+                        className="size-6"
+                        key={type}
+                        icon={<Icon className="size-3" />}
+                        onClick={(e) => {
+                          navigator.clipboard.writeText(message.content);
+                          const svgElement = e.currentTarget.querySelector('svg');
+                          if (svgElement) {
+                            svgElement.outerHTML = '<svg class="size-3"><path d="M10 15l-5-5 1.41-1.41L10 12.17l7.59-7.59L19 6l-9 9z"/></svg>';
+                          }
+                        }}
+                      />
+                    ))}
                 </ChatBubbleMessage>
               </ChatBubble>
             ))}
