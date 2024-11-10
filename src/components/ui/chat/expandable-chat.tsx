@@ -46,6 +46,15 @@ const ExpandableChat: React.FC<ExpandableChatProps> = ({
   ...props
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsOpen(true);
+    }, 2700);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const chatRef = useRef<HTMLDivElement>(null);
 
   const toggleChat = () => setIsOpen(!isOpen);
