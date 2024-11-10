@@ -2,20 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+body {
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 0 0% 0%; /* Dark gray background */
+    --foreground: 0 0% 90%; /* Light gray text */
+    --card: 0 0% 15%; /* Slightly lighter gray for cards */
+    --card-foreground: 0 0% 85%; /* Slightly darker gray text for cards */
+    --popover: 0 0% 10%; /* Even lighter gray for popovers */
+    --popover-foreground: 0 0% 80%; /* Darker gray text for popovers */
+    --primary: 0 0% 25%; /* Light gray primary color */
+    --primary-foreground: 0 0% 75%; /* Darker gray text for primary */
+    --secondary: 0 0% 20%; /* Lighter gray secondary color */
+    --secondary-foreground: 0 0% 70%; /* Darker gray text for secondary */
+    --muted: 0 0% 5%; /* Muted gray color */
+    --muted-foreground: 0 0% 45%; /* Darker gray text for muted */
+    --accent: 0 0% 40%; /* Accent gray color */
+    --accent-foreground: 0 0% 60%; /* Darker gray text for accent */
+    --destructive: 0 0% 45%; /* Destructive gray color */
+    --destructive-foreground: 0 0% 55%; /* Darker gray text for destructive */
+    --border: 0 0% 50%; /* Medium gray border */
+    --input: 0 0% 55%; /* Lighter gray input background */
+    --ring: 0 0% 60%; /* Light gray ring */
+    --chart-1: 0 0% 65%; /* Light gray chart color */
+    --chart-2: 0 0% 70%; /* Light gray chart color */
+    --chart-3: 0 0% 75%; /* Light gray chart color */
+    --chart-4: 0 0% 80%; /* Light gray chart color */
+    --chart-5: 0 0% 85%; /* Light gray chart color */
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
