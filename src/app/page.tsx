@@ -7,31 +7,7 @@ export default function Home() {
         <h1 className="text-7xl font-bold text-center shadow-lg">PawTox</h1>
         <h2 className="text-muted-foreground">Pet Poison Control Call Center</h2>
         <h2 className="bg-white rounded-lg p-2 shadow-lg text-black">+1 (888) 884 2201</h2>
-        {/* <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div> */}
+        <p className="mt-8 text-muted-foreground text-sm text-center">Over the phone, help you determine if your pet has been poisoned and needs emergency care.<br/>Optionally, you can verbally consent to toll-free SMS messages with instructions for at-home care and nearby 24/7 emergency vets.</p>
       </main>
       <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
         <a
